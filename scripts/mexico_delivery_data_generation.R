@@ -134,4 +134,40 @@ mx_table_2010 = extract_tables(file = "./data/decree_report_2010.pdf",
   rename(metric = X) %>% 
   mutate(year = 2010)
 
+# 2009
+mx_table_2009 = extract_tables(file = "./data/decree_report_2009.pdf", 
+                               pages = 28, 
+                               output = "data.frame")[[1]] %>%
+  dplyr::select(-TOTAL) %>%
+  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
+  rename(metric = X) %>% 
+  mutate(year = 2009)
+
+# 2008
+mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
+                               pages = 28, 
+                               output = "data.frame")[[1]] %>%
+  rename(metric = 1) %>%
+  dplyr::select(-TOTAL) %>%
+  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
+  mutate(year = 2008)
+
+# 2007
+mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
+                               pages = 28, 
+                               output = "data.frame")[[1]] %>%
+  rename(metric = 1) %>%
+  dplyr::select(-TOTAL) %>%
+  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
+  mutate(year = 2008)
+
+# 2006
+mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
+                               pages = 28, 
+                               output = "data.frame")[[1]] %>%
+  rename(metric = 1) %>%
+  dplyr::select(-TOTAL) %>%
+  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
+  mutate(year = 2008)
+
 
