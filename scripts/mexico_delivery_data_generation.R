@@ -143,31 +143,37 @@ mx_table_2009 = extract_tables(file = "./data/decree_report_2009.pdf",
   rename(metric = X) %>% 
   mutate(year = 2009)
 
+# Earlier gets trickier
+
+
 # 2008
-mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
-                               pages = 28, 
-                               output = "data.frame")[[1]] %>%
-  rename(metric = 1) %>%
-  dplyr::select(-TOTAL) %>%
-  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
-  mutate(year = 2008)
 
 # 2007
-mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
-                               pages = 28, 
+mx_table_2007 = extract_tables(file = "./data/decree_report_2007.pdf", 
+                               pages = 30, 
                                output = "data.frame")[[1]] %>%
+  select(-X, -X.1, -TOTAL) %>%
+  tail(-1) %>%
+  mutate(JAN = str_split(JAN.FEB, " ", simplify = TRUE)[,1], 
+         FEB = str_split(JAN.FEB, " ", simplify = TRUE)[,2]) %>%
+  select(-JAN.FEB) %>%
   rename(metric = 1) %>%
-  dplyr::select(-TOTAL) %>%
-  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
-  mutate(year = 2008)
+  pivot_longer(cols = MAR:FEB, names_to = "month") %>%
+  mutate(year = 2007) %>%
+  mutate(value = as.numeric(gsub(",", "",value)))
 
 # 2006
-mx_table_2008 = extract_tables(file = "./data/decree_report_2008.pdf", 
-                               pages = 28, 
+mx_table_2006 = extract_tables(file = "./data/decree_report_2006.pdf", 
+                               pages = 30, 
                                output = "data.frame")[[1]] %>%
+  select(-X, -X.1, -TOTAL) %>%
+  tail(-1) %>%
+  mutate(JAN = str_split(JAN.FEB, " ", simplify = TRUE)[,1], 
+         FEB = str_split(JAN.FEB, " ", simplify = TRUE)[,2]) %>%
+  select(-JAN.FEB) %>%
   rename(metric = 1) %>%
-  dplyr::select(-TOTAL) %>%
-  pivot_longer(cols = JAN:DEC, names_to = "month") %>%
-  mutate(year = 2008)
+  pivot_longer(cols = MAR:FEB, names_to = "month") %>%
+  mutate(year = 2007) %>%
+  mutate(value = as.numeric(gsub(",", "",value)))
 
 
