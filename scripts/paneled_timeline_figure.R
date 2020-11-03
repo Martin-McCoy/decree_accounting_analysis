@@ -7,6 +7,7 @@
 library(tidyverse)
 library(lubridate)
 library(ggpubr)
+library(waterData)
 
 # reading in big data
 lc <- read_csv("./data/lc_monthly_1950_present.csv")
@@ -22,6 +23,9 @@ historic_storage = read_csv(
   mutate(Storage = Storage * 1000,
          Reservoir = factor(Reservoir, levels = c("Total Storage", "Mead", "Powell"), 
                             labels = c("Total Storage", "Mead Storage", "Powell Storage")))
+
+# Lees Ferry data from waterdata
+lees = importDVs("09380000", code = "00060")
 
 # El nino patterns https://ggweather.com/enso/oni.htm
 el_nino = tibble(
@@ -92,24 +96,47 @@ excess_to_mx = mx_table_data %>%
             alpha = 0.5) +
   scale_fill_discrete(name = "El Niño Event Scale") +
   scale_y_continuous(
-    name = "AF",
+    name = "Volume (AF)",
     labels = scales::label_comma()
   ) +
   scale_x_date(date_labels = "%Y", 
-               date_breaks = "1 year", 
+               date_breaks = "2 years", 
                limits = date(c("1971-01-01", "2020-08-01"))) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   xlab("") +
   labs(title = "To Mexico in Excess of Treaty")
 
+# Minute 242
+minute_242 = mx_table_data %>%
+  filter(decree_report_label == "Water Bypass Pursuant to IBWC Minute No. 242") %>% 
+  drop_na() %>%
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  geom_rect(data = el_nino, inherit.aes=FALSE,
+            aes(xmin = date_start, xmax = date_end,
+                ymin = 0, ymax = 20000, fill = category),
+            alpha = 0.5) +
+  scale_fill_discrete(name = "El Niño Event Scale") +
+  scale_y_continuous(
+    name = "Volume (AF)",
+    labels = scales::label_comma()
+  ) +
+  scale_x_date(date_labels = "%Y", 
+               date_breaks = "2 years", 
+               limits = date(c("1971-01-01", "2020-08-01"))) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  xlab("") +
+  labs(title = "Water Bypass Pursuant to IBWC Minute No. 242")
 
+# combined storage
 combined_storage = historic_storage %>%
   filter(Reservoir == "Total Storage") %>%
   ggplot(aes(x = Date, y = Storage)) +
   geom_line() +
   scale_y_continuous(
-    name = "AF",
+    name = "Volume (AF)",
     labels = scales::label_comma()
   ) +
   theme_classic() +
@@ -119,7 +146,7 @@ combined_storage = historic_storage %>%
                 ymin = 0, ymax = 50000000, fill = category),
             alpha = 0.5) +
   scale_x_date(date_labels = "%Y", 
-               date_breaks = "1 year", 
+               date_breaks = "2 years", 
                limits = date(c("1971-01-01", "2020-08-01"))
   ) +
   theme_classic() +
@@ -127,7 +154,37 @@ combined_storage = historic_storage %>%
   scale_fill_discrete(name = "El Niño Event Scale") +
   labs(title = "Combined Storage (Mead + Powell)")
 
+# Lees Ferry
+lees_ferry = lees %>%
+  ggplot(aes(x = dates, y = val)) +
+  geom_line(size = 0.2) +
+  scale_y_continuous(
+    name = "Average Flow (CFS)", 
+    labels = scales::label_comma()
+  ) +
+  xlab("Date") +
+  geom_rect(data = el_nino, inherit.aes=FALSE,
+            aes(xmin = date_start, xmax = date_end,
+                ymin = 0, ymax = 90000, fill = category),
+            alpha = 0.5) +
+  scale_x_date(date_labels = "%Y", 
+               date_breaks = "2 years", 
+               limits = date(c("1971-01-01", "2020-08-01"))
+  ) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_discrete(name = "El Niño Event Scale") +
+  labs(title = "Flow at Lee's Ferry")
+  
+ggarrange(combined_storage, 
+          lees_ferry, 
+          excess_to_mx,
+          minute_242,
+          ncol = 1, 
+          nrow = 4, 
+          common.legend = TRUE, 
+          align = "v", 
+          labels = "auto", 
+          label.x = 0.95)
 
-ggarrange(excess_to_mx, combined_storage, ncol = 1, nrow = 2, common.legend = TRUE, align = "v")
-
-
+ggsave("./output/flows_and_climate.pdf")
