@@ -87,12 +87,15 @@ mx_table_data <- lc %>%
 # Excess to MX
 excess_to_mx = mx_table_data %>%
   filter(decree_report_label == "To Mexico in Excess of Treaty") %>% 
+  group_by(year = year(date)) %>%
+  summarize(value = sum(value)) %>%
   drop_na() %>%
+  mutate(date = date(paste(year, "12", "31", sep = "-"))) %>%
   ggplot(aes(x = date, y = value)) +
   geom_line() +
   geom_rect(data = el_nino, inherit.aes=FALSE,
             aes(xmin = date_start, xmax = date_end,
-                ymin = 0, ymax = 2000000, fill = category),
+                ymin = 0, ymax = 15e+6, fill = category),
             alpha = 0.5) +
   scale_fill_discrete(name = "El Niño Event Scale") +
   scale_y_continuous(
@@ -101,40 +104,60 @@ excess_to_mx = mx_table_data %>%
   ) +
   scale_x_date(date_labels = "%Y", 
                date_breaks = "2 years", 
-               limits = date(c("1971-01-01", "2020-08-01"))) +
+               limits = date(c("1971-01-01", "2024-08-01"))) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   xlab("") +
   labs(title = "To Mexico in Excess of Treaty")
 
+minute_242_summary = mx_table_data %>%
+  filter(decree_report_label == "Water Bypass Pursuant to IBWC Minute No. 242") %>% 
+  group_by(year = year(date)) %>%
+  summarize(value = sum(value)) %>%
+  drop_na() %>%
+  mutate(date = date(paste(year, "12", "31", sep = "-"))) %>%
+  filter(year >= 2000) %>%
+  summarize(mean = mean(value))
+
 # Minute 242
 minute_242 = mx_table_data %>%
   filter(decree_report_label == "Water Bypass Pursuant to IBWC Minute No. 242") %>% 
+  group_by(year = year(date)) %>%
+  summarize(value = sum(value)) %>%
   drop_na() %>%
+  mutate(date = date(paste(year, "12", "31", sep = "-"))) %>%
   ggplot(aes(x = date, y = value)) +
   geom_line() +
   geom_rect(data = el_nino, inherit.aes=FALSE,
             aes(xmin = date_start, xmax = date_end,
-                ymin = 0, ymax = 20000, fill = category),
+                ymin = 50000, ymax = 200000, fill = category),
             alpha = 0.5) +
   scale_fill_discrete(name = "El Niño Event Scale") +
   scale_y_continuous(
     name = "Volume (AF)",
     labels = scales::label_comma()
   ) +
+  geom_hline(yintercept = minute_242_summary %>% pull(), lty = 2) +
   scale_x_date(date_labels = "%Y", 
                date_breaks = "2 years", 
-               limits = date(c("1971-01-01", "2020-08-01"))) +
+               limits = date(c("1971-01-01", "2024-08-01"))) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   xlab("") +
-  labs(title = "Water Bypass Pursuant to IBWC Minute No. 242")
+  labs(title = "Water Bypass Pursuant to IBWC Minute No. 242") +
+  annotate("text", x = date("2023-07-01"), y = 127000, label = "Average Since\n2000")
+
+# half max storage
+historic_storage %>%
+  filter(Reservoir == "Total Storage") %>%
+  summarize(half = max(Storage/2))
 
 # combined storage
 combined_storage = historic_storage %>%
   filter(Reservoir == "Total Storage") %>%
   ggplot(aes(x = Date, y = Storage)) +
   geom_line() +
+  geom_hline(yintercept = 24899000, lty = 2) +
   scale_y_continuous(
     name = "Volume (AF)",
     labels = scales::label_comma()
@@ -147,12 +170,13 @@ combined_storage = historic_storage %>%
             alpha = 0.5) +
   scale_x_date(date_labels = "%Y", 
                date_breaks = "2 years", 
-               limits = date(c("1971-01-01", "2020-08-01"))
+               limits = date(c("1971-01-01", "2024-08-01"))
   ) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_discrete(name = "El Niño Event Scale") +
-  labs(title = "Combined Storage (Mead + Powell)")
+  labs(title = "Combined Storage (Mead + Powell)") +
+  annotate("text", x = date("2021-01-01"), y = 26500000, label = "50% Capacity")
 
 # Lees Ferry
 lees_ferry = lees %>%
@@ -177,11 +201,10 @@ lees_ferry = lees %>%
   labs(title = "Flow at Lee's Ferry")
   
 ggarrange(combined_storage, 
-          lees_ferry, 
           excess_to_mx,
           minute_242,
           ncol = 1, 
-          nrow = 4, 
+          nrow = 3, 
           common.legend = TRUE, 
           align = "v", 
           labels = "auto", 
