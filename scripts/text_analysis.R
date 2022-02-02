@@ -113,3 +113,21 @@ bigram_df[str_detect(bigram_df$word, "mexicos water"),] %>% View()
 text_df %>%
   filter(word == "brock")
 
+
+# Addtl Reviewer Suggestions
+words_to_find = c("salinity", "environmental", "groundwater", "species", "mexico")
+
+term_search = text_df |>
+  filter(word %in% words_to_find) |>
+  group_by(year, word) |>
+  summarize(n()) |>
+  ungroup() |>
+  ggplot(aes(x = year, y = `n()`, color = word, group = word)) +
+  geom_line(size = 1.25) +
+  theme_classic(base_size = 14) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(name = "Estimated Occurence Per Report") +
+  scale_x_discrete(name = "") +
+  scale_color_discrete(name = "Search Term")
+
+ggsave(plot = term_search, "./output/search_term_plot.png", width = 11, height = 8.5, units = "in", scale = 1.25)

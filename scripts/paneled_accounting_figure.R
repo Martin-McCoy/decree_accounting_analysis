@@ -51,7 +51,7 @@ mx_table_data <- lc %>%
   mutate(year = year(date), 
          date = date(date)) %>%
   select(-SDI) %>%
-  ggplot(aes(x = date, y = value)) +
+  ggplot(aes(x = date, y = value)) + # meter conversion
   geom_line() +
    scale_x_date(date_labels = "%Y", 
                 date_breaks = "5 years", 
@@ -61,8 +61,8 @@ mx_table_data <- lc %>%
                       labels = scales::label_comma()) +
    geom_hline(yintercept = 1075, lty = 2) +
    geom_hline(yintercept = 1090, lty = 2) +
-   annotate("text", x = date("2022-01-01"), y = 1110, label = "Tier 0") +
-   annotate("text", x = date("2022-01-01"), y = 1060, label = 'Tier 1') +
+   ggplot2::annotate("text", x = date("2022-01-01"), y = 1110, label = "Tier 0") +
+   ggplot2::annotate("text", x = date("2022-01-01"), y = 1060, label = 'Tier 1') +
    labs(title = "Lake Mead Elevation") +
    xlab("") +
    theme(axis.title.y = element_text(size = 10)) +
